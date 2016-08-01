@@ -10,7 +10,7 @@ A field for creating and editing multiple records in a backend or frontend form.
 
 
 ## License
-See [License](license.md)
+See [License](LICENSE.md)
 
 ## Documentation
  
@@ -94,7 +94,7 @@ change the fields.
 
 ## Screenshots
 
-[todo]
+![Alt text](/screenshots/1.png "Image of using Elemental with MultiRecordField")
 
 # To-Do
 
