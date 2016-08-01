@@ -1,6 +1,6 @@
 # Multi Record Field
 
-A field for creating and editing multiple records in a single form.
+A field for creating and editing multiple records in a backend or frontend form.
 
 ## Requirements
 

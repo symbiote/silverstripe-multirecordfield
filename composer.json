@@ -1,8 +1,8 @@
 {
-	"name": "nyeholt/silverstripe-multirecordfield",
+	"name": "silbinarywolf/multirecordfield",
 	"type": "silverstripe-module",
 	"description": "A module for editing multiple records on a backend or frontend form.",
-	"keywords": ["silverstripe", "record editing"],
+	"keywords": ["silverstripe", "gridfield", "frontend", "record editing"],
 	"license": "BSD-3-Clause",
 	"extra": {
 		"branch-alias": {
