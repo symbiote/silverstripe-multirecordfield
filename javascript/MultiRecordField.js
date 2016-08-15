@@ -114,6 +114,7 @@
 				}
 
 				function stop(e) {
+					isSorting = false;
 					sortUpdate(self.parent());
 
 					// HTMLEditorField support
