@@ -1144,30 +1144,39 @@ class MultiRecordField extends FormField {
                 //
                 foreach ($subRecordData as $fieldName => $fieldData)
                 {
-                    if ($sortFieldName !== $fieldName && 
-                        !isset($fields[$fieldName]))
-                    {
+
+                    if ($sortFieldName !== $fieldName
+						&& !isset($fields[$fieldName])
+						&& strpos($fieldName, '_ClassName') == false)
+					{
                         // todo(Jake): Say whether its missing the field from getCMSFields or getMultiRecordFields or etc.
                         throw new Exception('Missing field "'.$fieldName.'" from "'.$subRecord->class.'" fields based on data sent from client. (Could be a hack attempt)');
                     }
-                    $field = $fields[$fieldName];
-                    if (!$field instanceof MultiRecordField)
-                    {
-                        $value = $fieldData->value;
-                    }
-                    else
-                    {
-                        $value = $fieldData;
-                    }
-                    // NOTE(Jake): Added for FileAttachmentField as it uses the name used in the request for 
-                    //             file deletion.
-                    $field->MultiRecordEditing_Name = $this->getUniqueFieldName($field->getName(), $subRecord);
-                    $field->setValue($value);
-                    // todo(Jake): Some field types (ie. UploadField/FileAttachmentField) directly modify the record
-                    //             on 'saveInto', meaning people -could- circumvent certain permission checks
-                    //             potentially. Must test this or defer extensions of 'FileField' to 'saveInto' later.
-                    $field->saveInto($subRecord);
-                    $field->MultiRecordField_SavedInto = true;
+                    if(isset($fields[$fieldName])) {
+						$field = $fields[$fieldName];
+
+						if (!$field instanceof MultiRecordField)
+						{
+							$value = $fieldData->value;
+						}
+						else
+						{
+							$value = $fieldData;
+						}
+
+						if($field) {
+							// NOTE(Jake): Added for FileAttachmentField as it uses the name used in the request for 
+							//             file deletion.
+							$field->MultiRecordEditing_Name = $this->getUniqueFieldName($field->getName(), $subRecord);
+							$field->setValue($value);
+							// todo(Jake): Some field types (ie. UploadField/FileAttachmentField) directly modify the record
+							//             on 'saveInto', meaning people -could- circumvent certain permission checks
+							//             potentially. Must test this or defer extensions of 'FileField' to 'saveInto' later.
+							$field->saveInto($subRecord);
+							$field->MultiRecordField_SavedInto = true;
+						}
+					
+					}
                 }
 
                 // Handle sort if its not manually handled on the form
