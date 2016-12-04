@@ -146,7 +146,7 @@ class MultiRecordSubRecordField extends CompositeField {
      * @return ToggleCompositeField
      */
     public function ToggleCompositeField() {
-        if ($this->toggleCompositeField === null) {
+        if ($this->toggleCompositeField === null && $this->parent->getUseToggles()) {
             $title = $this->Title();
             $record = $this->getRecord();
             $recordClass = $record->class;

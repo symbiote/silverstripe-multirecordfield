@@ -21,6 +21,7 @@
 	display: none;
 }
 
+.multirecordfield-subrecordfield.is-deleted .field.togglecomposite,
 .multirecordfield-subrecordfield.is-deleted .multirecordfield-undo-button {
 	display: block;
 }

@@ -44,18 +44,6 @@ class MultiRecordUploadField extends UploadField {
         return parent::upload($request);
     }
 
-    /**
-     * @return MultiRecordUploadField
-     */ 
-    public static function cast(UploadField $field) {
-        $castCopy = MultiRecordUploadField::create($field->getName(), $field->Title());
-        foreach (get_object_vars($field) as $property => $value)
-        {
-            $castCopy->$property = $value;
-        }
-        return $castCopy;
-    }
-
     public function Link($action = null) {
         if ($this->multiRecordAction) {
             return $this->form->FormAction().'/field/'.$this->multiRecordAction.'/'.$action;

@@ -916,9 +916,16 @@ class MultiRecordField extends FormField {
                     // so FormField actions work.
                     $class = 'MultiRecord'.$field->class;
                     $fieldCopy = $class::create($field->getName(), $field->Title());
-                    foreach (get_object_vars($field) as $property => $value)
-                    {
-                        $fieldCopy->$property = $value;
+                    $ref = new ReflectionClass($field->class); 
+                    $propList = $ref->getProperties(); 
+                    foreach($propList as $propObj) { 
+                        if ($propObj->isStatic()) {
+                            continue;
+                        }
+                        $property = $propObj->getName();
+                        // Anything inheritting `ViewableData` essentially gives us full
+                        // access to set any variable (protected) to a new value.
+                        $fieldCopy->setField($property, $field->getField($property));
                     }
                     $fieldCopy->multiRecordAction = $this->getActionURL($field, $record);
                     $field = $fieldCopy;
@@ -930,6 +937,10 @@ class MultiRecordField extends FormField {
             // NOTE(Jake): Required to support UploadField. Generic so any field can utilize this functionality.
             if (method_exists($field, 'setRecord') || (method_exists($field, 'hasMethod') && $field->hasMethod('setRecord'))) {
                 $field->setRecord($record);
+            }
+            if ($field instanceof UploadField) {
+                // NOTE(Jake): Hack. Not sure why this value isn't sticking,
+                $fieldCopy->setAllowedMaxFileNumber($fieldCopy->getAllowedMaxFileNumber());
             }
 
             $currentFieldListModifying->push($field);
