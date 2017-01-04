@@ -758,8 +758,8 @@ class MultiRecordField extends FormField {
             throw new Exception('Function callback on '.__CLASS__.' must return a FieldList.');
         }
         $record->extend('updateMultiEditFields', $fields);
-        $fields = $fields->dataFields();
-        if (!$fields) {
+        $dataFields = $fields->dataFields();
+        if (!$dataFields) {
             $errorMessage = __CLASS__.' is missing fields for record #'.$record->ID.' on class "'.$record->class.'".';
             if (is_callable($fieldsFunction)) {
                 throw new Exception($errorMessage.'. This is due to the closure set with "setFieldsFunction" not returning a populated FieldList.');
@@ -777,7 +777,7 @@ class MultiRecordField extends FormField {
         $sortFieldName = $this->getSortFieldName();
         if ($sortFieldName)
         {
-            $sortField = isset($fields[$sortFieldName]) ? $fields[$sortFieldName] : null;
+            $sortField = isset($dataFields[$sortFieldName]) ? $dataFields[$sortFieldName] : null;
             if ($sortField && !$sortField instanceof HiddenField)
             {
                 throw new Exception('Cannot utilize drag and drop sort functionality if the sort field is explicitly used on form. Suggestion: $fields->removeByName("'.$sortFieldName.'") in '.$record->class.'::'.$fieldsFunction.'().');
@@ -1000,22 +1000,32 @@ class MultiRecordField extends FormField {
      */
     public function applyUniqueFieldNames($fields, $record)
     {
+        $hasDisplayLogic = $this->hasMethod('getDisplayLogicCriteria');
         $isReadonly = $this->isReadonly();
-        foreach ($fields->dataFields() as $field)
-        {
-            // Get all fields underneath/nested in MultiRecordSubRecordField
+
+        // Loop over all fields (dataFields) INCLUDING CompositeField types
+        $stack = $fields->toArray();
+        while ($stack) {
+            $field = array_shift($stack);
             $name = $this->getUniqueFieldName($field, $record);
             $field->setName($name);
-        }
-        foreach ($fields as $field)
-        {
-            // This loop is at a top level, so it should all technically just be
-            // MultiRecordSubRecordField's only.
-            if ($field instanceof MultiRecordSubRecordField) {
-                $name = $this->getUniqueFieldName($field, $record);
-                $field->setName($name);
+
+            if (!$isReadonly && $hasDisplayLogic) {
+                // Support Display Logic module by Unclecheese
+                $displayLogicCriteria = $field->getDisplayLogicCriteria();
+                if ($displayLogicCriteria !== null) {
+                    $displayLogicFieldName = $displayLogicCriteria->getMaster();
+                    $displayLogicFieldName = $this->getUniqueFieldName($displayLogicFieldName, $record);
+                    $displayLogicCriteria->setMaster($displayLogicFieldName);
+                }
             }
-            if ($isReadonly) {
+
+            if ($field->isComposite()) {
+                $stack = array_merge($stack, $field->getChildren()->toArray());
+            }
+        }
+        if ($isReadonly) {
+            foreach ($fields as $field) {
                 $fields->replaceField($field->getName(), $field = $field->performReadonlyTransformation());
             }
         }
@@ -1436,9 +1446,9 @@ class MultiRecordField extends FormField {
     }
 
     /**
-     * Set what field to use for sorting the records. Setting to false or blank string will explictly disable the sort.
+     * Set what field to use for sorting the records. 
      *
-     * @param string $name
+     * @param string $name Set to false or empty string to disable sort explicitly.
      * @return MultiRecordField
      */
     public function setSortFieldName($name) {
