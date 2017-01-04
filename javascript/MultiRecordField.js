@@ -87,11 +87,14 @@
 
 				// Avoid accordions from ToggleCompositeField opening when
 				// sorting.
-				self.find('.ss-toggle').accordion({
-					beforeActivate: function(e, data) {
-						if (isSorting) { return false; }
-					}
-				});
+				var $accordions = self.find('.ss-toggle');
+				if ($accordions.length > 0) {
+					$accordions.accordion({
+						beforeActivate: function(e, data) {
+							if (isSorting) { return false; }
+						}
+					});
+				}
 
 				function helper(e, row) {
 					var result = row.clone()
@@ -123,15 +126,18 @@
 					});
 				}
 
-				this.parent().sortable({
-					handle: '.js-multirecordfield-sort-handle',
-					axis: 'y',
-					helper: helper,
-					opacity: 0.7,
-					start: start,
-					update: update,
-					stop: stop
-				});
+				var $parent = this.parent();
+				if ($parent.find('.js-multirecordfield-sort-handle').length > 0) {
+					$parent.sortable({
+						handle: '.js-multirecordfield-sort-handle',
+						axis: 'y',
+						helper: helper,
+						opacity: 0.7,
+						start: start,
+						update: update,
+						stop: stop
+					});
+				}
 			}
 		});
 
