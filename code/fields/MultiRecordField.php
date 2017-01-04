@@ -886,8 +886,7 @@ class MultiRecordField extends FormField {
                     }
                 }
 
-                if ($field instanceof FileAttachmentField) 
-                {
+                if ($field instanceof FileAttachmentField)  {
                     // fix(Jake)
                     // todo(Jake): Fix deletion
 
@@ -908,9 +907,7 @@ class MultiRecordField extends FormField {
                             $field->setValue($val, $record);
                         }
                     }
-                }
-                else if (class_exists('MultiRecord'.$field->class))
-                {
+                } else if (class_exists('MultiRecord'.$field->class)) {
                     // Handle generic case (ie. UploadField)
                     // Where we just want to override value returned from $field->Link()
                     // so FormField actions work.
@@ -929,6 +926,8 @@ class MultiRecordField extends FormField {
                     }
                     $fieldCopy->multiRecordAction = $this->getActionURL($field, $record);
                     $field = $fieldCopy;
+                } else {
+                    $field->multiRecordAction = $this->getActionURL($field, $record);
                 }
                 // NOTE(Jake): Should probably add an ->extend() so other modules can monkey patch fields.
                 //             Will wait to see if its needed.

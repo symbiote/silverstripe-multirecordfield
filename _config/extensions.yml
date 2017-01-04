@@ -1,0 +1,14 @@
+---
+Name: multirecordfield_quickaddnew
+# NOTE(Jake): "Before" makes the extension run after 'quickaddnew'. As of Silverstripe 3.2 (2017-01-04)
+Before:
+  - 'quickaddnew/*'
+Only:
+  moduleexists: 'quickaddnew'
+---
+DropdownField:
+  extensions:
+    [MultiRecordQuickAddNewExtension]
+ListboxField:
+  extensions:
+    [MultiRecordQuickAddNewExtension]

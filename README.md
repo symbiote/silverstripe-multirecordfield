@@ -1,33 +1,21 @@
 # Multi Record Field
 
-A field for creating and editing multiple records in a backend or frontend form.
+A drop-in replacement for GridField.
+Allows creating and editing multiple records in a backend or frontend form.
 
-## Requirements
+## Supports
 
- * SilverStripe ^3.2
+* SilverStripe 3.2 and up
+* Display Logic
+* Dropzone Module
+* Quick Add New Module
+
+## Example Use
  
-## Installation
-
-
-## License
-See [License](LICENSE.md)
-
-## Documentation
- 
-```
-private static $has_many = array('Cells', 'BasicContent');
-
-$editor = MultiRecordField::create('ContentCellEditor', 'Content Cells', $this->Cells());
-$fields->addFieldToTab('Root.ContentCells', $editor);
-```
-
-
-## Example configuration (optional)
 
 ```php
 class Page extends SiteTree {
-	
-	private static $has_many = array(
+    private static $has_many = array(
         'Cells'      => 'BasicContent',
     );
 
@@ -41,38 +29,6 @@ class Page extends SiteTree {
         return $fields;
     }
 }
-
-class Page_Controller extends ContentController {}
-
-
-class BasicContent extends DataObject
-{
-    private static $db = array(
-        'Title'     => 'Varchar(255)',
-        'Description'   => 'Text',
-        'Content'       => 'HTMLText',
-    );
-
-    private static $has_one = array(
-        'Parent'        => 'Page',
-    );
-
-    private static $many_many = array(
-        'Images'        => 'Image',
-    );
-
-    public function getCMSFields()
-    {
-        $fields = parent::getCMSFields();
-
-        $uploadField = UploadField::create('Images', 'Images', $this->Images());
-        $uploadField->setAllowedFileCategories('image');
-        $fields->replaceField('Images', $uploadField);
-
-        return $fields;
-    }
-}
-
 ```
 
 **MultiRecordField Nesting**
