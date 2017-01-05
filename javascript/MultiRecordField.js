@@ -77,7 +77,7 @@
 			{
 				// Set CMS flag so it says 'You have unsaved changes, are you sure you want to leave?'
 				$('.cms-edit-form').addClass('changed');
- 			}
+			}
 		}
 
 		var isSorting = false;
@@ -98,14 +98,14 @@
 
 				function helper(e, row) {
 					var result = row.clone()
-			          .addClass("is-helper")
-			          .width(row.parent().width());
+					  .addClass("is-helper")
+					  .width(row.parent().width());
 
-			        row.find('textarea.htmleditor').each(function(){
+					row.find('textarea.htmleditor').each(function(){
 						tinymce.execCommand('mceRemoveEditor', false, $(this).attr('id'));
-				    });
+					});
 
-				    return result;
+					return result;
 				}
 
 				function start(e) {
@@ -141,9 +141,31 @@
 			}
 		});
 
+		// Rewrite all attributes with 'o-multirecordediting' to use new_1/new_2 etc
+		function rewriteAttributes(el, IDTree) {
+			if (!el) {
+				return;
+			}
+			for (var i=0; i < el.attributes.length; i++) {
+				var attr = el.attributes[i];
+				if (!attr.specified) {
+					continue;
+				}
+				if (attr.nodeValue.indexOf('o-multirecordediting') > -1) {
+					var newName = renderString(attr.nodeValue, IDTree);
+					if (attr.nodeName !== 'name') {
+						// SS 3.2+, Convert::raw2htmlid() logic
+						newName = newName.replace(/_+/g, '_');
+					}
+
+					attr.nodeValue = newName;
+				}
+			}
+		}
+
 		// Replace o-multirecordediting-* template variable with value when
-		// the <input type="hidden"> tag is created after a file is selected/uploaded
-		$('.ss-uploadfield-item-info input').entwine({
+		// the field tag is created.
+		$('div.field input, div.field textarea, div.field select').entwine({
 			onmatch: function() {
 				this._super();
 				var name = this.attr('name');
@@ -153,7 +175,14 @@
 					var newName = renderString(name, renderTree);
 					if (newName !== name)
 					{
-						$(this).attr('name', newName);
+						var oldID = $(this).attr('id');
+
+						// Rewrite attributes (ie. name/id field / display logic support)
+						rewriteAttributes(this[0], renderTree);
+
+						// Rewrite holder attributes
+						var $holder = $('#'+oldID+'_Holder');
+						rewriteAttributes($holder[0], renderTree);
 					}
 				}
 			},
@@ -209,7 +238,7 @@
 
 				var self = this[0],
 					$self = $(self),
-				    $thisItem = $self.parents('.js-multirecordfield-list-item').first();
+					$thisItem = $self.parents('.js-multirecordfield-list-item').first();
 
 				if ($thisItem.hasClass('is-deleted'))
 				{

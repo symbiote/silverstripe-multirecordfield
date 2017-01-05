@@ -15,4 +15,16 @@ class MultiRecordQuickAddNewExtension extends Extension {
         $newAction = str_replace('/field/'.$this->owner->getName(), '/field/'.$this->owner->multiRecordAction, $action);
         $attributes['data-quickaddnew-action'] = $newAction;
     }
+
+    public function updateQuickAddNewForm($form) {
+        $formField = $form->getController();
+        if (!$formField instanceof FormField) {
+            return;
+        }
+        // Rewrite form action to feed through MultiRecordField
+        if ($formField->multiRecordAction) {
+            $formAction = Controller::join_links($formField->getForm()->FormAction(), 'field/'.$formField->multiRecordAction, $form->getName());
+            $form->setFormAction($formAction);
+        }
+    }
 }

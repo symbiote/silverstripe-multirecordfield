@@ -796,9 +796,7 @@ class MultiRecordField extends FormField {
                 //             The sort field is prepended so jQuery.find('.js-multirecordfield-sort-field').first()
                 //             finds the related sort field to this, rather than a sort field nested deeply in other
                 //             MultiRecordField's.
-                $fields = array_merge(array(
-                    $sortFieldName => $sortField
-                ), $fields);
+                $fields->unshift($sortField);
             }
             $sortField->addExtraClass('js-multirecordfield-sort-field');
         }
@@ -837,7 +835,7 @@ class MultiRecordField extends FormField {
 
         // Modify sub-fields to work properly with this field
         $currentFieldListModifying = $subRecordField;
-        foreach ($fields as $field)
+        foreach ($fields->dataFields() as $field)
         {
             $fieldName = $field->getName();
 
@@ -927,6 +925,8 @@ class MultiRecordField extends FormField {
                     $fieldCopy->multiRecordAction = $this->getActionURL($field, $record);
                     $field = $fieldCopy;
                 } else {
+                    // NOTE(Jake): This was added for QuickAddNew support (2017-01-05)
+                    //             Allows non-casted fields to work via extensions.
                     $field->multiRecordAction = $this->getActionURL($field, $record);
                 }
                 // NOTE(Jake): Should probably add an ->extend() so other modules can monkey patch fields.
@@ -1165,38 +1165,34 @@ class MultiRecordField extends FormField {
                 foreach ($subRecordData as $fieldName => $fieldData)
                 {
 
-                    if ($sortFieldName !== $fieldName
-						&& !isset($fields[$fieldName])
-						&& strpos($fieldName, '_ClassName') == false)
-					{
+                    if ($sortFieldName !== $fieldName && 
+                        !isset($fields[$fieldName]) && 
+                        strpos($fieldName, '_ClassName') == false) {
                         // todo(Jake): Say whether its missing the field from getCMSFields or getMultiRecordFields or etc.
                         throw new Exception('Missing field "'.$fieldName.'" from "'.$subRecord->class.'" fields based on data sent from client. (Could be a hack attempt)');
                     }
                     if(isset($fields[$fieldName])) {
-						$field = $fields[$fieldName];
+                        $field = $fields[$fieldName];
 
-						if (!$field instanceof MultiRecordField)
-						{
-							$value = $fieldData->value;
-						}
-						else
-						{
-							$value = $fieldData;
-						}
+                        if (!$field instanceof MultiRecordField) {
+                            $value = $fieldData->value;
+                        } else {
+                            $value = $fieldData;
+                        }
 
-						if($field) {
-							// NOTE(Jake): Added for FileAttachmentField as it uses the name used in the request for 
-							//             file deletion.
-							$field->MultiRecordEditing_Name = $this->getUniqueFieldName($field->getName(), $subRecord);
-							$field->setValue($value);
-							// todo(Jake): Some field types (ie. UploadField/FileAttachmentField) directly modify the record
-							//             on 'saveInto', meaning people -could- circumvent certain permission checks
-							//             potentially. Must test this or defer extensions of 'FileField' to 'saveInto' later.
-							$field->saveInto($subRecord);
-							$field->MultiRecordField_SavedInto = true;
-						}
-					
-					}
+                        if($field) {
+                            // NOTE(Jake): Added for FileAttachmentField as it uses the name used in the request for 
+                            //             file deletion.
+                            $field->MultiRecordEditing_Name = $this->getUniqueFieldName($field->getName(), $subRecord);
+                            $field->setValue($value);
+                            // todo(Jake): Some field types (ie. UploadField/FileAttachmentField) directly modify the record
+                            //             on 'saveInto', meaning people -could- circumvent certain permission checks
+                            //             potentially. Must test this or defer extensions of 'FileField' to 'saveInto' later.
+                            $field->saveInto($subRecord);
+                            $field->MultiRecordField_SavedInto = true;
+                        }
+                    
+                    }
                 }
 
                 // Handle sort if its not manually handled on the form
