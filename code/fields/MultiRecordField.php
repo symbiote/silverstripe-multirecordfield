@@ -1089,7 +1089,7 @@ class MultiRecordField extends FormField {
             if ($record->ID && $list instanceof UnsavedRelationList) {
                 if ($this->config()->enable_patch_5775 === false)
                 {
-                    throw new Exception("ListboxField or another FormField called DataObject::write() when it wasn't meant to on your unsaved record. https://github.com/silverstripe/silverstripe-framework/pull/5775 ---- Enable 'enable_patch_5775' in your config YML against ".__CLASS__." to enable a workaround.");
+                    throw new Exception("ListboxField (in SS 3.4 or lower) or another FormField called DataObject::write() when it wasn't meant to on your unsaved record. https://github.com/silverstripe/silverstripe-framework/pull/5775 ---- Enable 'enable_patch_5775' in your config YML against ".__CLASS__." to enable a workaround.");
                 }
                 if ($relation instanceof ElementalArea) {
                     // Hack to support Elemental
