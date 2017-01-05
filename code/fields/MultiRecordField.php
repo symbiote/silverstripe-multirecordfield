@@ -834,7 +834,6 @@ class MultiRecordField extends FormField {
         }
 
         // Modify sub-fields to work properly with this field
-        $currentFieldListModifying = $subRecordField;
         foreach ($fields->dataFields() as $field)
         {
             $fieldName = $field->getName();
@@ -941,8 +940,21 @@ class MultiRecordField extends FormField {
                 // NOTE(Jake): Hack. Not sure why this value isn't sticking,
                 $fieldCopy->setAllowedMaxFileNumber($fieldCopy->getAllowedMaxFileNumber());
             }
+        }
 
-            $currentFieldListModifying->push($field);
+        // Add fields to sub-record
+        $stack = $fields->toArray();
+        while ($stack) {
+            $field = array_shift($stack);
+            if ($field instanceof TabSet) {
+                // NOTE(Jake): TabSet isn't supported in this context, so just
+                //             get all the children and insert them in place.
+                //             Not using $fields->dataFields() so that 'FieldGroup'
+                //             fields and similar are retained.
+                $stack = array_merge($field->getChildren()->toArray(), $stack);
+                continue;
+            }
+            $subRecordField->push($field);
         }
 
         $resultFieldList = new FieldList();
@@ -1020,7 +1032,7 @@ class MultiRecordField extends FormField {
             }
 
             if ($field->isComposite()) {
-                $stack = array_merge($stack, $field->getChildren()->toArray());
+                $stack = array_merge($field->getChildren()->toArray(), $stack);
             }
         }
         if ($isReadonly) {
