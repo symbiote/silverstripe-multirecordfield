@@ -15,10 +15,14 @@
 }
 
 /* Undo Button */
-.multirecordfield-subrecordfield .multirecordfield-undo-button,
+.multirecordfield-subrecordfield .multirecordfield-undo-button {
+	display: none;
+}
+
 .multirecordfield-subrecordfield.is-deleted .field,
 .multirecordfield-subrecordfield.is-deleted .multirecordfield-delete-button {
-	display: none;
+	/* NOTE(Jake): !important is to ensure a field stays hidden, even with a 'style="display: block;"' attribute (Display Logic) */
+	display: none !important;
 }
 
 .multirecordfield-subrecordfield.is-deleted .field.togglecomposite,
