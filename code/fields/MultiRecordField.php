@@ -1207,24 +1207,26 @@ class MultiRecordField extends FormField {
                     }
                 }
 
-                // Handle sort if its not manually handled on the form
-                if ($sortFieldName && !isset($fields[$sortFieldName]))
-                {
-                    $newSortValue = $id; // Default to order added
-                    if (isset($subRecordData[$sortFieldName])) {
-                        $newSortValue = $subRecordData[$sortFieldName];
-                    }
-                    if ($newSortValue)
+                if ($sortFieldName) {
+                    // Handle sort if its not manually handled on the form
+                    if (!isset($fields[$sortFieldName]))
                     {
-                        $subRecord->{$sortFieldName} = $newSortValue;
+                        $newSortValue = $id; // Default to order added
+                        if (isset($subRecordData[$sortFieldName])) {
+                            $newSortValue = $subRecordData[$sortFieldName];
+                        }
+                        if ($newSortValue)
+                        {
+                            $subRecord->{$sortFieldName} = $newSortValue;
+                        }
                     }
-                }
-
-                // Check if sort value is invalid
-                $sortValue = $subRecord->{$sortFieldName};
-                if ($sortValue <= 0)
-                {
-                    throw new Exception('Invalid sort value ('.$sortValue.') on #'.$subRecord->ID.' for class '.$subRecord->class.'. Sort value must be greater than 0.');
+                    
+                    // Check if sort value is invalid
+                    $sortValue = $subRecord->{$sortFieldName};
+                    if ($sortValue <= 0)
+                    {
+                        throw new Exception('Invalid sort value ('.$sortValue.') on #'.$subRecord->ID.' for class '.$subRecord->class.'. Sort value must be greater than 0.');
+                    }
                 }
                 
                 if (!$subRecord->doValidate())
