@@ -1335,7 +1335,6 @@ class MultiRecordField extends FormField {
                     || $list instanceof RelationList) // ie. HasManyList/ManyManyList
                 {
                     $subRecord = $subRecordAndList[self::NEW_RECORD];
-                    // NOTE(Jake): Adding an empty record into an existing ManyManyList/HasManyList -seems- to create that record.
                     $list->add($subRecord);
                 }
                 else 

@@ -12,12 +12,10 @@
 		}
 
 		function renderString(string, variables) {
-			for (var i = 0; i < variables.length; ++i)
-			{
+			for (var i = 0; i < variables.length; ++i){
 				var it = variables[i];
 				var index = i + 1;
-				for (var key in it)
-				{
+				for (var key in it) {
 					string = string.replace(new RegExp('o-multirecordediting-'+index+'-'+key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), it[key]);
 				}
 			}
@@ -73,8 +71,7 @@
 				}
 			});
 
-			if (changed)
-			{
+			if (changed) {
 				// Set CMS flag so it says 'You have unsaved changes, are you sure you want to leave?'
 				$('.cms-edit-form').addClass('changed');
 			}
@@ -165,16 +162,17 @@
 
 		// Replace o-multirecordediting-* template variable with value when
 		// the field tag is created.
-		$('div.field input, div.field textarea, div.field select').entwine({
+
+		// NOTE(Jake): "div.field :input" works with Display Logic module (2017-01-12),
+		//			   don't touch this selector without through testing.
+		$('div.field :input').entwine({
 			onmatch: function() {
 				this._super();
 				var name = this.attr('name');
-				if (name && name.indexOf('o-multirecordediting') > -1)
-				{
+				if (name && name.indexOf('o-multirecordediting') > -1) {
 					var renderTree = getIDTree(this);
 					var newName = renderString(name, renderTree);
-					if (newName !== name)
-					{
+					if (newName !== name) {
 						var oldID = $(this).attr('id');
 
 						// Rewrite attributes (ie. name/id field / display logic support)
@@ -240,8 +238,7 @@
 					$self = $(self),
 					$thisItem = $self.parents('.js-multirecordfield-list-item').first();
 
-				if ($thisItem.hasClass('is-deleted'))
-				{
+				if ($thisItem.hasClass('is-deleted')) {
 					return;
 				}
 
