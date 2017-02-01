@@ -277,6 +277,10 @@
 					// Update sort values
 					var $fieldList = $field.find('.js-multirecordfield-list').first();
 					sortUpdate($fieldList);
+
+					if ($fieldList.children().length === 0) {
+						$fieldList.addClass('is-empty');
+					}
 				}
 				else
 				{
@@ -313,7 +317,8 @@
 				var self = this[0],
 					$self = $(self);
 
-				if ($self.hasClass('is-disabled') || $self.is(":disabled") || $self.hasClass('is-loading')) {
+				var $field = $self.parents('.js-multirecordfield-field').first();
+				if ($self.hasClass('is-disabled') || $self.is(":disabled") || $field.hasClass('is-loading')) {
 					return;
 				}
 
@@ -334,7 +339,6 @@
 					return;
 				}
 
-				var $field = $self.parents('.js-multirecordfield-field').first();
 				var $fieldList = $field.find('.js-multirecordfield-list').first();
 
 				if (typeof $self.data('add-inline-num') === 'undefined')
@@ -369,6 +373,7 @@
 					$fieldList.append(renderString(data, renderTree));
 					sortUpdate($fieldList);
 
+					$fieldList.removeClass('is-empty');
 					$self.data('add-inline-num', num + 1);
 				});
 
@@ -378,7 +383,9 @@
 				var self = this[0];
 				var $self = $(self);
 
-				if ($self.hasClass('is-loading')) {
+				var $field = $self.parents('.js-multirecordfield-field').first();
+
+				if ($field.hasClass('is-loading')) {
 					return;
 				}
 
@@ -397,14 +404,13 @@
 				//			   clash somehow.
 				var templateID = url;
 
-				if (!hasTemplate(templateID))
-				{
-					var $field = $self.parents('.js-multirecordfield-field').first();
+				if (!hasTemplate(templateID)) {
 					var $errors = $field.find('.js-multirecordfield-errors');
 
 					var $actions = $self.parents('.js-multirecordfield-actions');
 					var $loader = $actions.find('.js-multirecordfield-loading');
 					$self.addClass('is-loading');
+					$field.addClass('is-loading');
 					$loader.addClass('is-loading');
 
 					$.ajax({
@@ -422,11 +428,10 @@
 						complete: function() {
 							$loader.removeClass('is-loading');
 							$self.removeClass('is-loading');
+							$field.removeClass('is-loading');
 						}
 					});
-				}
-				else
-				{
+				} else {
 					var data = getTemplate(templateID);
 					callback.apply(this, [data]);
 				}

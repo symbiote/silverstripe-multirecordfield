@@ -35,6 +35,10 @@ div.multirecordfield-classname {
 	padding-bottom: 0;
 }
 
+.multirecordfield-fields.is-empty ~ .multirecordfield-actions-after {
+	display: none;
+}
+
 /* Skin */
 .cms .ui-button.multirecordfield-delete-button {
 	color: #fff;

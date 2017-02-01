@@ -7,16 +7,12 @@
 	<div class="multirecordfield-deleted js-multirecordfield-deleted-list" style="display: none;">
 		<%-- Deleted fields get stored here as an <input> to track what got deleted --%>
 	</div>
-	<% if $Actions %>
-		<div class="multirecordfield-actions js-multirecordfield-actions clearfix">
-			$Actions
-			<div class="multirecordfield-loading js-multirecordfield-loading"></div>
-		</div>
-	<% end_if %>
-	<div class="multirecordfield-fields js-multirecordfield-list">
+	<% include MultiRecordField_actions IsAfter=0 %>
+	<div class="multirecordfield-fields <% if not $Fields %>is-empty<% end_if %> js-multirecordfield-list">
 		<% if $Fields %>
 			$Fields
 		<% end_if %>
 	</div>
+	<% include MultiRecordField_actions IsAfter=1 %>
 	<div class="clear"></div>
 </div>
