@@ -38,6 +38,23 @@ The `MultiRecordField` supports nesting of other
 in the set of fields to edit, that field is added as another nested toggle 
 field inside the parent set of fields for editing. 
 
+**Transform existing GridField into MultiRecordField **
+
+You may want to retain a few configurations made to the GridField that MultiRecordField supports.
+In that case, you'll want to utilize the `MultiRecordTransformation` class.
+
+This will ensure the properties on GridFieldExtensions `GridFieldAddNewMultiClass` will carry across.
+
+```php
+<?php
+
+foreach ($fields->dataFields() as $field) {
+    if ($field instanceof GridField) {
+        $fields->replaceField($field->getName(), $field->transform(new MultiRecordTransformation));
+    }
+}
+```
+
 **Custom fields**
 
 The `MultiRecordField` uses the output of `getCMSFields` when building
@@ -55,7 +72,14 @@ change the fields.
 # To-Do
 
 Unit Tests
-- Ensure all form data is restored correctly when a Form $Validator returns false
+Backend:
+    - Ensure all form data is restored correctly when a Form $Validator returns false
+    - Ensure Display Logic works cleanly with this module.
+    - Ensure permission checking works as expected.
+Frontend:
+    - Test sorting, ensure correct hidden fields are updated
+    - Test add button and AJAX response.
+    - Test error messages / display
 
 ## Maintainers
 

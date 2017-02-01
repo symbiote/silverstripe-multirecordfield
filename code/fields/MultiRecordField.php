@@ -375,12 +375,9 @@ class MultiRecordField extends FormField {
      */
     public function applyButtonClasses(FieldList $actions) {
         $buttonClasses = $this->getButtonClasses();
-        if ($buttonClasses && $actions)
-        {
-            foreach ($actions as $actionField)
-            {
-                if ($actionField instanceof FormAction)
-                {
+        if ($buttonClasses && $actions) {
+            foreach ($actions as $actionField) {
+                if ($actionField instanceof FormAction) {
                     $actionField->addExtraClass($buttonClasses);
                 }
             }
@@ -1374,12 +1371,10 @@ class MultiRecordField extends FormField {
      * @return FieldList
      */
     public function Actions() {
-        if (!$this->getCanAddInline())
-        {
+        if (!$this->getCanAddInline()) {
             return new FieldList();
         }
-        if ($this->actions)
-        {
+        if ($this->actions) {
             return $this->actions;
         }
 
@@ -1396,11 +1391,11 @@ class MultiRecordField extends FormField {
         $inlineAddButton->addExtraClass('ss-ui-action-constructive ss-ui-button');
         $inlineAddButton->setAttribute('data-icon', 'add');
 
-        // NOTE(Jake): add 'updateActions' here if needed later.
-
         // Update FormAction fields with button classes
-        // todo(Jake): Find a better location for applying this
         $this->applyButtonClasses($this->actions);
+
+        // NOTE(Jake): To add and test later perhaps? If necessary.
+        //$this->extend('updateActions', $this->actions);
 
         return $this->actions;
     }

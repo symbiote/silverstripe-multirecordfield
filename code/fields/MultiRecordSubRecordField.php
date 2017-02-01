@@ -139,6 +139,9 @@ class MultiRecordSubRecordField extends CompositeField {
             $parent->applyButtonClasses($actions);
         }
 
+        // NOTE(Jake): To add and test later perhaps? If necessary.
+        //$this->extend('updateActions', $actions);
+
         return $actions;
     }
 
