@@ -948,7 +948,13 @@ class MultiRecordField extends FormField {
                 //             get all the children and insert them in place.
                 //             Not using $fields->dataFields() so that 'FieldGroup'
                 //             fields and similar are retained.
-                $stack = array_merge($field->getChildren()->toArray(), $stack);
+                $tabSetChildren = null;
+                if ($this->readonly) {
+                    $tabSetChildren = $field->performReadonlyTransformation()->getChildren()->toArray();
+                } else {
+                    $tabSetChildren = $field->getChildren()->toArray();
+                } 
+                $stack = array_merge($tabSetChildren, $stack);
                 continue;
             }
             $subRecordField->push($field);
