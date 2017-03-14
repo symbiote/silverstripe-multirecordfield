@@ -333,7 +333,7 @@ class MultiRecordField extends FormField {
      * @return \MultiRecordField
      */
     public function setCanAddInline($value) {
-        $value = $this->canAddInline;
+        $this->canAddInline = $value;
         return $this;
     }
 
