@@ -1,0 +1,24 @@
+Group:
+  admin:
+    Title: Administrators
+Member:
+  admin:
+    Email: admin@example.com
+    Password: ZXXlkwecxz2390232233
+    Groups: =>Group.admin
+Permission:
+  admin:
+    Code: ADMIN
+    GroupID: =>Group.admin
+MultiRecordField_PageTest:
+  existing:
+    Title: 'Test page'
+    
+# 'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_1__Title' => 'Test A Title',
+#             'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_1__Content' => '<p>Test A Content</p>',
+#             'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_2__Title' => 'Test B Title',
+#             'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_2__Content' => '<p>Test B Content</p>',
+# MultiRecordField_PageTest:
+#   page:
+#     Title: 'Test Page'
+#     Content: 'Test Content'

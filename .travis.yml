@@ -1,38 +1,35 @@
-# See https://github.com/silverstripe-labs/silverstripe-travis-support for setup details
-
-sudo: false
-
 language: php
-
 php:
-  - 5.3
-  - 5.4
-  - 5.5
-  - 5.6
-  - 7.0
+ - 5.3
 
 env:
-  - DB=MYSQL CORE_RELEASE=3.2
+  matrix:
+   - DB=MYSQL CORE_RELEASE=3.2
 
 matrix:
   include:
+    - php: 5.3
+      env: DB=MYSQL CORE_RELEASE=3.2
+    - php: 5.4
+      env: DB=MYSQL CORE_RELEASE=3.2
+    - php: 5.5
+      env: DB=MYSQL CORE_RELEASE=3.3
     - php: 5.6
       env: DB=MYSQL CORE_RELEASE=3
     - php: 5.6
-      env: DB=MYSQL CORE_RELEASE=3.1
+      env: DB=MYSQL CORE_RELEASE=3.2
     - php: 5.6
-      env: DB=PGSQL CORE_RELEASE=3.2
+      env: DB=MYSQL CORE_RELEASE=3.3
+    - php: 5.6
+      env: DB=MYSQL CORE_RELEASE=3.4
+    - php: 5.6
+      env: DB=MYSQL CORE_RELEASE=3.5
 
 before_script:
-  - composer self-update || true
-  - git clone git://github.com/silverstripe-labs/silverstripe-travis-support.git ~/travis-support
-  - php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss
-  - cd ~/builds/ss
-  - composer install
+ - phpenv rehash
+ - git clone git://github.com/silverstripe-labs/silverstripe-travis-support.git ~/travis-support
+ - php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss
+ - cd ~/builds/ss
 
 script:
-  - vendor/bin/phpunit module/tests
-
-matrix:
-  allow_failures:
-    - php: 7.0
+ - vendor/bin/phpunit multirecordfield/tests/
