@@ -830,17 +830,14 @@ class MultiRecordField extends FormField {
             $subRecordField = $subRecordField->performReadonlyTransformation();
         }
 
-        // Modify sub-fields to work properly with this field
-        foreach ($fields->dataFields() as $field)
-        {
+        // Modify *certain* dataFields() to work properly with this field
+        foreach ($fields->dataFields() as $field) {
             $fieldName = $field->getName();
 
-            if ($recordShouldSetValue)
-            {
+            if ($recordShouldSetValue) {
                 if (isset($record->$fieldName)
                     || $record->hasMethod($fieldName)
-                    || ($record->hasMethod('hasField') && $record->hasField($fieldName)))
-                {
+                    || ($record->hasMethod('hasField') && $record->hasField($fieldName))) {
                     $val = $record->__get($fieldName);
                     $field->setValue($val, $record);
                 }
@@ -855,12 +852,9 @@ class MultiRecordField extends FormField {
                 //             or something.
                 $field->setFieldsFunction($this->getFieldsFunction(), $this->fieldsFunctionFallback);
                 //$field->setTitleField($this->getTitleField());
-            }
-            else
-            {
+            } else {
                 $config = $this->getConfig();
-                if ($config === null)
-                {
+                if ($config === null) {
                     $config = $this->config()->default_config;
                 }
                 // todo(Jake): Make it walk class hierarchy so that things that extend say 'HtmlEditorField'
@@ -935,8 +929,9 @@ class MultiRecordField extends FormField {
             }
             if ($field instanceof UploadField) {
                 // NOTE(Jake): Hack. Not sure why this value isn't sticking,
-                $fieldCopy->setAllowedMaxFileNumber($fieldCopy->getAllowedMaxFileNumber());
+                $field->setAllowedMaxFileNumber($field->getAllowedMaxFileNumber());
             }
+            $fields->replaceField($fieldName, $field);
         }
 
         // Add fields to sub-record
