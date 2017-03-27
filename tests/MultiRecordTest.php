@@ -2,91 +2,12 @@
 
 class MultiRecordTest extends FunctionalTest
 {
-    protected $usesDatabase = true;
-    
-    protected static $disable_themes = true;
-
-    protected static $fixture_file = 'MultiRecordTest.yml';
-
-    protected $extraDataObjects = array(
-        'MultiRecordField_PageTest',
-        'MultiRecordField_HasManyTest'
-    );
-
-    public function testSaveAndEditNewRecords_NoSort()
-    {
-        $this->logInAs('admin');
-
-        $page = MultiRecordField_PageTest::create();
-        $page->Title = 'New page';
-        $page->write();
-
-        // Add new MultiRecordField records on page
-        $this->get($page->CMSEditLink());
-        $response = $this->submitForm('Form_EditForm', 'action_publish', array(
-            'ID' => $page->ID,
-            'Title' => 'New page, new name',
-        ), array(
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_1__Title' => 'Test A Title',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_1__Content' => '<p>Test A Content</p>',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_2__Title' => 'Test B Title',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_2__Content' => '<p>Test B Content</p>',
-        ));
-        $this->assertEquals(200, $response->getStatusCode());
-        $page = Page::get()->byID($page->ID);
-        $this->assertEquals('New page, new name', $page->Title);
-        $hasManyRelation = $page->HasManyRelation()->sort('ID')->toArray();
-        $this->assertEquals(2, count($hasManyRelation));
-        $this->assertEquals('Test A Title', $hasManyRelation[0]->Title);
-        $this->assertEquals('<p>Test A Content</p>', $hasManyRelation[0]->Content);
-        $this->assertEquals('Test B Title', $hasManyRelation[1]->Title);
-        $this->assertEquals('<p>Test B Content</p>', $hasManyRelation[1]->Content);
-
-        // Edit existing MultiRecordField records on page
-        $this->get($page->CMSEditLink());
-        $response = $this->submitForm('Form_EditForm', 'action_publish', array(
-            'ID' => $page->ID,
-            'Title' => 'New page, newer name',
-        ), array(
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__'.$hasManyRelation[0]->ID.'__Title' => 'Test A New Title',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__'.$hasManyRelation[0]->ID.'__Content' => '<p>Test A New Content</p>',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__'.$hasManyRelation[1]->ID.'__Title' => 'Test B New Title',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__'.$hasManyRelation[1]->ID.'__Content' => '<p>Test B New Content</p>',
-        ));
-        $this->assertEquals(200, $response->getStatusCode());
-        $page = Page::get()->byID($page->ID);
-        $this->assertEquals('New page, newer name', $page->Title);
-        $hasManyRelation = $page->HasManyRelation()->sort('ID')->toArray();
-        $this->assertEquals(2, count($hasManyRelation));
-        $this->assertEquals('Test A New Title', $hasManyRelation[0]->Title);
-        $this->assertEquals('<p>Test A New Content</p>', $hasManyRelation[0]->Content);
-        $this->assertEquals('Test B New Title', $hasManyRelation[1]->Title);
-        $this->assertEquals('<p>Test B New Content</p>', $hasManyRelation[1]->Content);
-
-        // Add new and edit existing MultiRecordField records on page
-        $this->get($page->CMSEditLink());
-        $response = $this->submitForm('Form_EditForm', 'action_publish', array(
-            'ID' => $page->ID,
-            'Title' => 'New page, newest name',
-        ), array(
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__'.$hasManyRelation[0]->ID.'__Title' => 'Test A Newer Title',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__'.$hasManyRelation[0]->ID.'__Content' => '<p>Test A Newer Content</p>',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__'.$hasManyRelation[1]->ID.'__Title' => 'Test B Newer Title',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__'.$hasManyRelation[1]->ID.'__Content' => '<p>Test B Newer Content</p>',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_1__Title' => 'Test C Title',
-            'HasManyRelation__MultiRecordField__MultiRecordField_HasManyTest__new_1__Content' => '<p>Test C Content</p>',
-        ));
-        $this->assertEquals(200, $response->getStatusCode());
-        $page = Page::get()->byID($page->ID);
-        $this->assertEquals('New page, newest name', $page->Title);
-        $hasManyRelation = $page->HasManyRelation()->sort('ID')->toArray();
-        $this->assertEquals(3, count($hasManyRelation));
-        $this->assertEquals('Test A Newer Title', $hasManyRelation[0]->Title);
-        $this->assertEquals('<p>Test A Newer Content</p>', $hasManyRelation[0]->Content);
-        $this->assertEquals('Test B Newer Title', $hasManyRelation[1]->Title);
-        $this->assertEquals('<p>Test B Newer Content</p>', $hasManyRelation[1]->Content);
-        $this->assertEquals('Test C Title', $hasManyRelation[2]->Title);
-        $this->assertEquals('<p>Test C Content</p>', $hasManyRelation[2]->Content);
+    public function setUp() {
+        // Skip calling MultiRecordTest directly.
+        if(get_class($this) === __CLASS__) {
+            $this->skipTest = true;
+        }
+        return parent::setUp();
     }
 
     /**
@@ -101,6 +22,25 @@ class MultiRecordTest extends FunctionalTest
             $response = $this->mainSession->followRedirection();
         }
         return $response;
+    }
+
+    /**
+     * Copy-paste from UploadFieldTest
+     */
+    protected function getUploadFile($tmpFileName = 'UploadFieldTest-testUpload.txt') {
+        $tmpFilePath = TEMP_FOLDER . '/' . $tmpFileName;
+        $tmpFileContent = '';
+        for($i=0; $i<10000; $i++) $tmpFileContent .= '0';
+        file_put_contents($tmpFilePath, $tmpFileContent);
+
+        // emulates the $_FILES array
+        return array(
+            'name' => array('Uploads' => array($tmpFileName)),
+            'type' => array('Uploads' => array('text/plaintext')),
+            'size' => array('Uploads' => array(filesize($tmpFilePath))),
+            'tmp_name' => array('Uploads' => array($tmpFilePath)),
+            'error' => array('Uploads' => array(UPLOAD_ERR_OK)),
+        );
     }
 
     /**
