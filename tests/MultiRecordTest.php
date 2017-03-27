@@ -2,6 +2,8 @@
 
 class MultiRecordTest extends FunctionalTest
 {
+    const IMAGE_BASE64_DATA = '/9j/4AAQSkZJRgABAQEAYABgAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAAgACADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9rJNaVvut81V5tYdfm3Vz9rqi3Dbvu1aebzF6/ernNDUh8TbmKs3zbqvW+qedt+Zq5CZvJk3I3y1q6TdM8a7aAOR0lnhVvm+VaL7X2s22tub+7USWs2nybnb5aZqWnvqEDMi1oZlu31xbhVUt81aumaksP3fm3Vx8No9mzb/4fu1LZ6z9lnVfMbb6UBzdz//Z';
+
     public function setUp() {
         // Skip calling MultiRecordTest directly.
         if(get_class($this) === __CLASS__) {
@@ -29,8 +31,8 @@ class MultiRecordTest extends FunctionalTest
      */
     protected function getUploadFile($tmpFileName = 'UploadFieldTest-testUpload.txt') {
         $tmpFilePath = TEMP_FOLDER . '/' . $tmpFileName;
-        $tmpFileContent = '';
-        for($i=0; $i<10000; $i++) $tmpFileContent .= '0';
+        $tmpFileContent = base64_decode(self::IMAGE_BASE64_DATA);
+        //for($i=0; $i<10000; $i++) $tmpFileContent .= '0';
         file_put_contents($tmpFilePath, $tmpFileContent);
 
         // emulates the $_FILES array
