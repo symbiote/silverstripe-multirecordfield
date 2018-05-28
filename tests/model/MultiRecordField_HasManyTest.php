@@ -5,6 +5,7 @@ class MultiRecordField_HasManyTest extends DataObject implements TestOnly
 	private static $db = array(
 		'Title' => 'Varchar(255)',
 		'Content' => 'HTMLText',
+		'ACheckbox' => 'Boolean'
 	);
 
     private static $has_one = array(
