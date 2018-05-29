@@ -1171,6 +1171,18 @@ class MultiRecordField extends FormField {
                     throw new Exception($class.' is returning 0 fields.');
                 }
 
+                // Note(Stephen) 2018-05-28: Checkboxes don't return a value
+                // when unchecked. We assume any unset CheckboxField has been
+                // unchecked and set the field to null.
+                foreach ($fields as $field) {
+                    if ($field instanceof CheckboxField || $field instanceof CheckboxFieldSet) {
+                        if (!isset($subRecordData[$field->Name])) {
+                            $field->setValue(null);
+                            $field->saveInto($subRecord);
+                            $field->MultiRecordField_SavedInto = true;
+                        }
+                    }
+                }
                 //
                 foreach ($subRecordData as $fieldName => $fieldData)
                 {
