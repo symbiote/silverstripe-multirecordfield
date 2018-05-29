@@ -6,6 +6,7 @@ Allows creating and editing multiple records in a backend or frontend form.
 ## Supports
 
 * SilverStripe 3.2 and up
+* PHP 5.4+
 * Display Logic
 * Dropzone Module
 * Quick Add New Module
