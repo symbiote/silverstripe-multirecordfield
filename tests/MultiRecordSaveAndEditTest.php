@@ -25,7 +25,7 @@ class MultiRecordSaveAndEditTest extends MultiRecordTest
         $this->get($page->CMSEditLink());
         $_FILES = array('Image' => $this->getUploadFile('tmpfile.jpg'));
         $response = $this->post(
-            "admin/pages/edit/EditForm/field/"."HasManyRelation"."/addinlinerecord/MultiRecordField_HasManyTest/new/field/".key($_FILES)."/upload",
+            "admin/pages/edit/EditForm/" . $page->ID . "/field/" . "HasManyRelation"."/addinlinerecord/MultiRecordField_HasManyTest/new/field/".key($_FILES)."/upload",
             $_FILES
         );
         $this->assertEquals(200, $response->getStatusCode());
