@@ -25,9 +25,17 @@ class MultiRecordSaveAndEditTest extends MultiRecordTest
         $this->get($page->CMSEditLink());
         $_FILES = array('Image' => $this->getUploadFile('tmpfile.jpg'));
         $response = $this->post(
-            "admin/pages/edit/EditForm/" . $page->ID . "/field/" . "HasManyRelation"."/addinlinerecord/MultiRecordField_HasManyTest/new/field/".key($_FILES)."/upload",
+            "admin/pages/edit/EditForm/field/"."HasManyRelation"."/addinlinerecord/MultiRecordField_HasManyTest/new/field/".key($_FILES)."/upload",
             $_FILES
         );
+        if ($response->getBody() == "I can't handle sub-URLs on class CMSPageEditController.") {
+            // Note Stephen (2018-05-29) The current SilverStripe 3 branch expects the following url format instead.
+            // It includes the page ID in the URL e.g: "admin/pages/edit/EditForm/1/field/"
+            $response = $this->post(
+                "admin/pages/edit/EditForm/" . $page->ID . "/field/" . "HasManyRelation"."/addinlinerecord/MultiRecordField_HasManyTest/new/field/".key($_FILES)."/upload",
+                $_FILES
+            );
+        }
         $this->assertEquals(200, $response->getStatusCode());
         $uploadResponseData = json_decode($response->getBody(), true);
         $this->assertTrue(isset($uploadResponseData[0]['id']), 'Cannot upload file on UploadField inside MultiRecordField');
