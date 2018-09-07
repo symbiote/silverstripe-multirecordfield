@@ -1,5 +1,5 @@
 {
-	"name": "silbinarywolf/multirecordfield",
+	"name": "symbiote/silverstripe-multirecordfield",
 	"type": "silverstripe-module",
 	"description": "A module for editing multiple records on a backend or frontend form.",
 	"keywords": ["silverstripe", "gridfield", "frontend", "record editing"],
@@ -10,9 +10,12 @@
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "2.0.x-dev"
+			"dev-master": "3.0.x-dev"
 		},
 		"installer-name": "multirecordfield"
+	},
+	"replace": {
+		"silbinarywolf/multirecordfield": "self.version"
 	},
 	"minimum-stability": "dev"
 }

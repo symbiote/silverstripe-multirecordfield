@@ -84,6 +84,6 @@ Frontend:
 
 ## Maintainers
 
-* Jake Bentvelzen (SilbinaryWolf) <jake@silverstripe.com.au>
+* Jake Bentvelzen <jake@symbiote.com.au>
  
 ## Bugtracker
