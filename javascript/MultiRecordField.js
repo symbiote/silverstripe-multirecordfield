@@ -397,8 +397,19 @@
 					console.log('MultiRecordField::AddInlineRecord: Missing data-action attribute.');
 					return;
 				}
+
+				// pull attrs off action url
+				var args = '';
+				var argsIndex = action.indexOf('?');
+				if(argsIndex !== -1) {
+					args = action.slice(argsIndex);
+					action = action.slice(0, argsIndex);
+				}
+
+				// construct full url
 				var url = action+'/field/'+fieldAction+'/addinlinerecord';
 				url += '/'+encodeURIComponent(className);
+				url += args;
 
 				// NOTE(Jake): Might need to include Formname or get the full URL as relative paths might
 				//			   clash somehow.
