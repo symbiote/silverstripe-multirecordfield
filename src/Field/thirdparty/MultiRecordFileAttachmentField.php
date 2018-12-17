@@ -1,5 +1,17 @@
 <?php
 
+namespace Symbiote\MultiRecordField\Field\thirdparty;
+
+use FileAttachmentField;
+
+
+
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\ORM\DataObjectInterface;
+use SilverStripe\Control\Controller;
+
+
+
 if (!class_exists('FileAttachmentField')) {
     return;
 }
@@ -7,7 +19,7 @@ if (!class_exists('FileAttachmentField')) {
 /**
  * Support for FileAttachmentField from Unclecheese's Dropzone module.
  * Only supports ~1.2.x at time of writing (20/06/2016)
- */ 
+ */
 class MultiRecordFileAttachmentField extends FileAttachmentField {
     private static $allowed_actions = array(
         'upload',
@@ -34,7 +46,7 @@ class MultiRecordFileAttachmentField extends FileAttachmentField {
      * @return SS_HTTPResponse
      * @return SS_HTTPResponse
      */
-    public function upload(SS_HTTPRequest $request) {
+    public function upload(HTTPRequest $request) {
         return parent::upload($request);
     }
 
@@ -48,10 +60,10 @@ class MultiRecordFileAttachmentField extends FileAttachmentField {
         //             to determine the relation name.
         $result = parent::saveInto($record);
 
-        if ($this->MultiRecordEditing_Name) 
+        if ($this->MultiRecordEditing_Name)
         {
-            // NOTE(Jake): Handle deletions by using the original sent name here, 
-            //             ie. Use 'ElementArea__MultiRecordField__ElementGallery__33__Image' not 'Image'. 
+            // NOTE(Jake): Handle deletions by using the original sent name here,
+            //             ie. Use 'ElementArea__MultiRecordField__ElementGallery__33__Image' not 'Image'.
             $deletions = Controller::curr()->getRequest()->postVar('__deletion__'.$this->MultiRecordEditing_Name);
 
             if($deletions) {
@@ -84,7 +96,7 @@ class MultiRecordFileAttachmentField extends FileAttachmentField {
 
     /**
      * @return MultiRecordFileAttachmentField
-     */ 
+     */
     public static function cast(FileAttachmentField $field) {
         $castCopy = MultiRecordFileAttachmentField::create($field->getName(), $field->Title(), $field->Value(), $field->getForm());
         foreach (get_object_vars($field) as $property => $value)

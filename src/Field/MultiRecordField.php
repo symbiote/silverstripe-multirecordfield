@@ -1,5 +1,45 @@
 <?php
 
+namespace Symbiote\MultiRecordField\Field;
+
+use Exception;
+use LogicException;
+
+
+use ReflectionClass;
+
+use SilverStripe\Forms\CheckboxSetField;
+use SilverStripe\ORM\SS_List;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Security\Member;
+use SilverStripe\Control\RequestHandler;
+use SilverStripe\Forms\FormAction;
+use Symbiote\MultiRecordField\Field\MultiRecordField;
+use SilverStripe\Forms\GridField\GridFieldConfig;
+use SilverStripe\ORM\DataObjectInterface;
+use SilverStripe\Forms\HiddenField;
+use Symbiote\MultiRecordField\Field\thirdparty\MultiRecordFileAttachmentField;
+use SilverStripe\AssetAdmin\Forms\UploadField;
+use SilverStripe\Forms\TabSet;
+use SilverStripe\Forms\FormField;
+use SilverStripe\ORM\UnsavedRelationList;
+use DNADesign\Elemental\Models\ElementalArea;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DataList;
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\ORM\ValidationException;
+use SilverStripe\ORM\RelationList;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\View\Requirements;
+use SilverStripe\Control\Controller;
+use SilverStripe\Admin\LeftAndMain;
+use SilverStripe\ORM\ArrayList;
+
+
+
 /**
  * For tracking field (sent/expanded names) and values in
  * 'saveInto'
@@ -13,7 +53,7 @@ class MultiRecordFieldData {
      */
     public $requestName;
 
-    /** 
+    /**
      * @var mixed
      */
     public $value;
@@ -62,7 +102,7 @@ class MultiRecordField extends FormField {
      */
     private static $default_button_classes = '';
 
-    /** 
+    /**
      * Enable workaround for ListboxField bug in 'framework' 3.3 and below.
      * When disabled, an exception will be thrown if that bug is detected.
      *
@@ -82,7 +122,7 @@ class MultiRecordField extends FormField {
 
     /**
      * The list object passed into the object.
-     * 
+     *
      * @var SS_List
      */
     protected $list;
@@ -138,13 +178,13 @@ class MultiRecordField extends FormField {
     protected $sortFieldName = null;
 
     /**
-     * Should we use toggle Composites in layout ? 
+     * Should we use toggle Composites in layout ?
      *
      * @var boolean
      */
     protected $useToggles = true;
 
-    /** 
+    /**
      * @var boolean
      */
     protected $preparedForRender = false;
@@ -187,9 +227,9 @@ class MultiRecordField extends FormField {
     }
 
     /**
-     * 
+     *
      */
-    public function handleAddInline(SS_HTTPRequest $request) {
+    public function handleAddInline(HTTPRequest $request) {
         // Force reset
         $this->children = FieldList::create();
 
@@ -197,7 +237,7 @@ class MultiRecordField extends FormField {
         // todo(Jake): Change '->remaining' to '->shift(4)' and test.
         //             remove other ->shift things.
         $dirParts = explode('/', $request->remaining());
-        $class = isset($dirParts[0]) ? $dirParts[0] : '';
+        $class = isset($dirParts[0]) ? urldecode($dirParts[0]) : '';
         if (!$class)
         {
             return $this->httpError(400, 'No ClassName was supplied.');
@@ -239,7 +279,7 @@ class MultiRecordField extends FormField {
         $fields = $this->getRecordDataFields($record);
         $dataFields = $fields->dataFields();
 
-        // 
+        //
         $isValidSubFieldAction = (isset($dirParts[2]) && $dirParts[2] === 'field') ? true : false;
         $subField = null;
         if ($isSubFieldAction) {
@@ -268,7 +308,7 @@ class MultiRecordField extends FormField {
             return $this->httpError(400, 'Invalid sub-field action on '.__CLASS__.'::'.__FUNCTION__);
         }
 
-        // Allow fields to render, 
+        // Allow fields to render,
         $this->children = $fields;
 
         // Remove all actions
@@ -280,7 +320,7 @@ class MultiRecordField extends FormField {
         return $this->renderWith(array($this->class.'_addinline', __CLASS__.'_addinline'));
     }
 
-    public function handleRequest(SS_HTTPRequest $request, DataModel $model) {
+    public function handleRequest(HTTPRequest $request) {
         if ($request->match('addinlinerecord', true)) {
             // NOTE(Jake): Handling here as I'm not sure how to do a url_handler that allows
             //             infinite parameters after 'addinlinerecord'
@@ -288,8 +328,8 @@ class MultiRecordField extends FormField {
             if ($result && is_object($result) && $result instanceof RequestHandler)
             {
                 // NOTE(Jake): Logic copied from parent::handleRequest()
-                $returnValue = $result->handleRequest($request, $model);
-                if($returnValue && is_array($returnValue)) { 
+                $returnValue = $result->handleRequest($request);
+                if($returnValue && is_array($returnValue)) {
                     $returnValue = $this->customise($returnValue);
                 }
                 return $returnValue;
@@ -393,7 +433,7 @@ class MultiRecordField extends FormField {
     public function setValue($value, $formData = array()) {
         if (!$value && $formData && is_array($formData))
         {
-            // NOTE(Jake): The call stack is: 
+            // NOTE(Jake): The call stack is:
             //                  $field->setValue($val, $formData);
             //                  $form->loadDataFrom($data)
             //                  $form->httpSubmission($request);
@@ -418,7 +458,7 @@ class MultiRecordField extends FormField {
                             continue;
                         }
                         $signature = $fieldParameters[1];
-                        if ($signature !== 'MultiRecordField')
+                        if ($signature !== MultiRecordField::class)
                         {
                             return $this->httpError(400, 'Invalid signature in "MultiRecordField". Malformed MultiRecordField sub-field or hack attempt.');
                         }
@@ -435,7 +475,7 @@ class MultiRecordField extends FormField {
                         if ($fieldParametersCount == $FIELD_PARAMETERS_SIZE)
                         {
                             // 1st Nest Level
-                            $relation_class_id_field[$parentFieldName][$class][$new_id][$fieldName] = $fieldData; 
+                            $relation_class_id_field[$parentFieldName][$class][$new_id][$fieldName] = $fieldData;
                         }
                         else
                         {
@@ -453,7 +493,7 @@ class MultiRecordField extends FormField {
                                 }
                                 $relationArray = &$relationArray[$parentFieldName][$class][$new_id];
                             }
-                            $relationArray[$fieldName] = $fieldData; 
+                            $relationArray[$fieldName] = $fieldData;
                             unset($relationArray);
                         }
                     }
@@ -500,7 +540,7 @@ class MultiRecordField extends FormField {
     }
 
     /**
-     * Set one model class. 
+     * Set one model class.
      * This function exists to be identical to the GridField function so developers can
      * quickly switch between the two.
      *
@@ -550,7 +590,7 @@ class MultiRecordField extends FormField {
         if($this->list && method_exists($this->list, 'dataClass')) {
             $class = $this->list->dataClass();
 
-            if ($class) 
+            if ($class)
             {
                 if(!is_array($class)) {
                     $class = array($class);
@@ -569,7 +609,7 @@ class MultiRecordField extends FormField {
      */
     public function getModelClassesOrThrowExceptionIfEmpty() {
         $modelClasses = $this->getModelClasses();
-        if (!$modelClasses) 
+        if (!$modelClasses)
         {
             throw new LogicException(__CLASS__.' doesn\'t have any modelClasses set, so it doesn\'t know what class types can be added inline.');
         }
@@ -677,12 +717,12 @@ class MultiRecordField extends FormField {
     /**
      * Get the default function to call on the record if
      * $this->fieldsFunction isn't set.
-     * 
+     *
      * @return string
      */
     public function getDefaultFieldsFunction(DataObjectInterface $record) {
-        if (method_exists($record, 'getMultiRecordFields') 
-            || (method_exists($record, 'hasMethod') && $record->hasMethod('getMultiRecordFields'))) 
+        if (method_exists($record, 'getMultiRecordFields')
+            || (method_exists($record, 'hasMethod') && $record->hasMethod('getMultiRecordFields')))
         {
             return 'getMultiRecordFields';
         }
@@ -695,7 +735,7 @@ class MultiRecordField extends FormField {
     /**
      * Get closure or string of the function to call for getting record
      * fields.
-     * 
+     *
      * @return function|string
      */
     public function getFieldsFunction() {
@@ -708,7 +748,7 @@ class MultiRecordField extends FormField {
      * If string, then set the method to call on the record to get fields.
      * If closure, then call the method for the fields with $record as the first parameter.
      *
-     * @param string|function $functionOrFunctionName 
+     * @param string|function $functionOrFunctionName
      * @param boolean $fallback If true, fallback to using 'getMultiRecordFields' and then fallback to 'getCMSFields'
      * @return MultiRecordField
      */
@@ -729,14 +769,14 @@ class MultiRecordField extends FormField {
         }
 
         $fields = null;
-        if (is_callable($fieldsFunction)) 
+        if (is_callable($fieldsFunction))
         {
             $fields = $fieldsFunction($record);
-        } 
+        }
         else
         {
-            if (method_exists($record, $fieldsFunction) 
-                || (method_exists($record, 'hasMethod') && $record->hasMethod($fieldsFunction))) 
+            if (method_exists($record, $fieldsFunction)
+                || (method_exists($record, 'hasMethod') && $record->hasMethod($fieldsFunction)))
             {
                 $fields = $record->$fieldsFunction();
             }
@@ -749,7 +789,7 @@ class MultiRecordField extends FormField {
             {
                 throw new Exception($record->class.'::'.$fieldsFunction.' function does not exist.');
             }
-        } 
+        }
         if (!$fields || !$fields instanceof FieldList)
         {
             throw new Exception('Function callback on '.__CLASS__.' must return a FieldList.');
@@ -764,7 +804,7 @@ class MultiRecordField extends FormField {
             throw new Exception($errorMessage.'. This is due '.$record->class.'::'.$fieldsFunction.' not returning a populated FieldList.');
         }
 
-        // 
+        //
         $recordExists = $record->exists();
 
         // Set value from record if it exists or if re-loading data after failed form validation
@@ -901,9 +941,9 @@ class MultiRecordField extends FormField {
                     // so FormField actions work.
                     $class = 'MultiRecord'.$field->class;
                     $fieldCopy = $class::create($field->getName(), $field->Title());
-                    $ref = new ReflectionClass($field->class); 
-                    $propList = $ref->getProperties(); 
-                    foreach($propList as $propObj) { 
+                    $ref = new ReflectionClass($field->class);
+                    $propList = $ref->getProperties();
+                    foreach($propList as $propObj) {
                         if ($propObj->isStatic()) {
                             continue;
                         }
@@ -948,7 +988,7 @@ class MultiRecordField extends FormField {
                     $tabSetChildren = $field->performReadonlyTransformation()->getChildren()->toArray();
                 } else {
                     $tabSetChildren = $field->getChildren()->toArray();
-                } 
+                }
                 $stack = array_merge($tabSetChildren, $stack);
                 continue;
             }
@@ -976,8 +1016,8 @@ class MultiRecordField extends FormField {
         //
         //  Level 2 Nest:
         //  -------------
-        //                     [5] => MultiRecordField [6] => ElementGallery_Item [7] => new_2 [8] => Items) 
-        // 
+        //                     [5] => MultiRecordField [6] => ElementGallery_Item [7] => new_2 [8] => Items)
+        //
         //
         $nameData = $this->getUniqueFieldName($field, $record);
         $nameData = explode('__', $nameData);
@@ -986,7 +1026,7 @@ class MultiRecordField extends FormField {
         for ($i = 1; $i < $nameDataCount; $i += 4)
         {
             $signature = $nameData[$i];
-            if ($signature !== 'MultiRecordField')
+            if ($signature !== MultiRecordField::class)
             {
                 throw new LogicException('Error caused by developer. Invalid signature in "MultiRecordField". Signature: '.$signature);
             }
@@ -1052,14 +1092,14 @@ class MultiRecordField extends FormField {
         $recordID = $this->getFieldID($record);
 
         return sprintf(
-            '%s__%s__%s__%s__%s', $this->getName(), 'MultiRecordField', $record->ClassName, $recordID, $name
+            '%s__%s__%s__%s__%s', $this->getName(), MultiRecordField::class, $record->ClassName, $recordID, $name
         );
     }
 
     private static $_new_records_to_write = null;
     private static $_existing_records_to_write = null;
     private static $_records_to_delete = null;
-    public function saveInto(\DataObjectInterface $record)
+    public function saveInto(DataObjectInterface $record)
     {
         if ($this->depth == 1)
         {
@@ -1100,10 +1140,10 @@ class MultiRecordField extends FormField {
         }
 
         $flatList = array();
-        if ($list instanceof DataList) 
+        if ($list instanceof DataList)
         {
             $flatList = array();
-            foreach ($list as $r) 
+            foreach ($list as $r)
             {
                 $flatList[$r->ID] = $r;
             }
@@ -1175,7 +1215,7 @@ class MultiRecordField extends FormField {
                 // when unchecked. We assume any unset CheckboxField has been
                 // unchecked and set the field to null.
                 foreach ($fields as $field) {
-                    if ($field instanceof CheckboxField || $field instanceof CheckboxFieldSet) {
+                    if ($field instanceof CheckboxField || $field instanceof CheckboxSetField) {
                         if (!isset($subRecordData[$field->Name])) {
                             $field->setValue(null);
                             $field->saveInto($subRecord);
@@ -1186,9 +1226,8 @@ class MultiRecordField extends FormField {
                 //
                 foreach ($subRecordData as $fieldName => $fieldData)
                 {
-
-                    if ($sortFieldName !== $fieldName && 
-                        !isset($fields[$fieldName]) && 
+                    if ($sortFieldName !== $fieldName &&
+                        !isset($fields[$fieldName]) &&
                         strpos($fieldName, '_ClassName') == false) {
                         // todo(Jake): Say whether its missing the field from getCMSFields or getMultiRecordFields or etc.
                         throw new Exception('Missing field "'.$fieldName.'" from "'.$subRecord->class.'" fields based on data sent from client. (Could be a hack attempt)');
@@ -1203,7 +1242,7 @@ class MultiRecordField extends FormField {
                         }
 
                         if($field) {
-                            // NOTE(Jake): Added for FileAttachmentField as it uses the name used in the request for 
+                            // NOTE(Jake): Added for FileAttachmentField as it uses the name used in the request for
                             //             file deletion.
                             $field->MultiRecordEditing_Name = $this->getUniqueFieldName($field->getName(), $subRecord);
                             $field->setValue($value);
@@ -1213,7 +1252,7 @@ class MultiRecordField extends FormField {
                             $field->saveInto($subRecord);
                             $field->MultiRecordField_SavedInto = true;
                         }
-                    
+
                     }
                 }
 
@@ -1230,7 +1269,7 @@ class MultiRecordField extends FormField {
                             $subRecord->{$sortFieldName} = $newSortValue;
                         }
                     }
-                    
+
                     // Check if sort value is invalid
                     $sortValue = $subRecord->{$sortFieldName};
                     if ($sortValue <= 0)
@@ -1238,7 +1277,7 @@ class MultiRecordField extends FormField {
                         throw new Exception('Invalid sort value ('.$sortValue.') on #'.$subRecord->ID.' for class '.$subRecord->class.'. Sort value must be greater than 0.');
                     }
                 }
-                
+
                 if (!$subRecord->doValidate())
                 {
                     throw new ValidationException('Failed validation on '.$subRecord->class.'::doValidate() on record #'.$subRecord->ID);
@@ -1261,7 +1300,7 @@ class MultiRecordField extends FormField {
         // The top-most MutliRecordField handles all the permission checking/saving at once
         if ($this->depth == 1)
         {
-            // Remove records from list that haven't been changed to avoid unnecessary 
+            // Remove records from list that haven't been changed to avoid unnecessary
             // permission check and ->write overhead
             foreach (self::$_existing_records_to_write as $i => $subRecord)
             {
@@ -1284,16 +1323,16 @@ class MultiRecordField extends FormField {
             //
             $currentMember = Member::currentUser();
             $recordsPermissionUnable = array();
-            foreach (self::$_new_records_to_write as $subRecordAndList) 
+            foreach (self::$_new_records_to_write as $subRecordAndList)
             {
                 $subRecord = $subRecordAndList[self::NEW_RECORD];
                 // Check each new record to see if you can create them
-                if (!$subRecord->canCreate($currentMember)) 
+                if (!$subRecord->canCreate($currentMember))
                 {
                     $recordsPermissionUnable['canCreate'][$subRecord->class][$subRecord->ID] = true;
                 }
             }
-            foreach (self::$_existing_records_to_write as $subRecord) 
+            foreach (self::$_existing_records_to_write as $subRecord)
             {
                 // Check each existing record to see if you can edit them
                 if (!$subRecord->canEdit($currentMember))
@@ -1313,15 +1352,15 @@ class MultiRecordField extends FormField {
             {
                 /**
                  * Output a nice exception/error message telling you exactly what records/classes
-                 * the permissions failed on. 
+                 * the permissions failed on.
                  *
                  * eg.
                  * Current member #7 does not have permission.
                  *
-                 * Unable to "canCreate" records: 
+                 * Unable to "canCreate" records:
                  * - ElementGallery (26)
                  *
-                 * Unable to "canEdit" records: 
+                 * Unable to "canEdit" records:
                  * - ElementGallery (24,23,22)
                  * - ElementGallery_Item (16,23,17,18,19,20,22,21)
                  */
@@ -1338,16 +1377,16 @@ class MultiRecordField extends FormField {
             }
 
             // Add new records into the appropriate list
-            foreach (self::$_new_records_to_write as $subRecordAndList) 
+            foreach (self::$_new_records_to_write as $subRecordAndList)
             {
                 $list = $subRecordAndList[self::NEW_LIST];
-                if ($list instanceof UnsavedRelationList 
+                if ($list instanceof UnsavedRelationList
                     || $list instanceof RelationList) // ie. HasManyList/ManyManyList
                 {
                     $subRecord = $subRecordAndList[self::NEW_RECORD];
                     $list->add($subRecord);
                 }
-                else 
+                else
                 {
                     throw new Exception('Unsupported SS_List type "'.$list->class.'"');
                 }
@@ -1358,7 +1397,7 @@ class MultiRecordField extends FormField {
             //Debug::dump($record); Debug::dump($relation_class_id_field); exit('Exited at: '.__CLASS__.'::'.__FUNCTION__);// Debug raw request information tree
 
             // Save existing items
-            foreach (self::$_existing_records_to_write as $subRecord) 
+            foreach (self::$_existing_records_to_write as $subRecord)
             {
                 // NOTE(Jake): Records are checked above to see if they've been changed.
                 //             If they haven't been changed, they're removed from the 'self::$_existing_records_to_write' list.
@@ -1366,7 +1405,7 @@ class MultiRecordField extends FormField {
             }
 
             // Remove deleted items
-            foreach (self::$_records_to_delete as $subRecord) 
+            foreach (self::$_records_to_delete as $subRecord)
             {
                 $subRecord->delete();
             }
@@ -1462,7 +1501,7 @@ class MultiRecordField extends FormField {
     }
 
     /**
-     * Set what field to use for sorting the records. 
+     * Set what field to use for sorting the records.
      *
      * @param string $name Set to false or empty string to disable sort explicitly.
      * @return MultiRecordField
@@ -1537,7 +1576,7 @@ class MultiRecordField extends FormField {
      * Prepares everything just before rendering the field
      */
     protected function prepareForRender() {
-        if (!$this->preparedForRender) 
+        if (!$this->preparedForRender)
         {
             $this->preparedForRender = true;
             if (!$this->isReadonly() && $this->depth == 1)
@@ -1546,26 +1585,20 @@ class MultiRecordField extends FormField {
                 //             Requirements::javascript on-the-fly.
                 //Requirements::javascript(FRAMEWORK_DIR . "/thirdparty/jquery/jquery.js");
                 Requirements::css(MULTIRECORDEDITOR_DIR.'/css/MultiRecordField.css');
-                if (is_subclass_of(Controller::curr(), 'LeftAndMain')) {
+                if (is_subclass_of(Controller::curr(), LeftAndMain::class)) {
                     // NOTE(Jake): Only include in CMS to fix margin issues. Not in the main CSS file
                     //             so that the frontend CSS is less in the way.
                     Requirements::css(MULTIRECORDEDITOR_DIR.'/css/MultiRecordFieldCMS.css');
                 }
 
-                Requirements::css(THIRDPARTY_DIR . '/jquery-ui-themes/smoothness/jquery-ui.css');
-                Requirements::javascript(FRAMEWORK_DIR . '/thirdparty/jquery-ui/jquery-ui.js');
-                Requirements::javascript(FRAMEWORK_DIR . '/javascript/jquery-ondemand/jquery.ondemand.js');
-                Requirements::javascript(THIRDPARTY_DIR . '/jquery-entwine/dist/jquery.entwine-dist.js');
-                Requirements::javascript(MULTIRECORDEDITOR_DIR.'/javascript/MultiRecordField.js');
+                Requirements::css('silverstripe/admin: thirdparty/jquery-ui-themes/smoothness/jquery-ui.css');
 
-                // If config is set to 'default' but 'default' isn't configured, fallback to 'cms'.
-                // NOTE(Jake): In SS 3.2, 'default' is the default active config but its not configured.
-                $availableConfigs = HtmlEditorConfig::get_available_configs_map();
-                $activeIdentifier = HtmlEditorConfig::get_active_identifier();
-                if ($activeIdentifier === 'default' && !isset($availableConfigs[$activeIdentifier]))
-                {
-                    HtmlEditorConfig::set_active('cms');
-                }
+                Requirements::javascript(MULTIRECORDEDITOR_DIR.'/javascript/jquery-migrate-1.4.1.js');
+
+                Requirements::javascript('silverstripe/admin: thirdparty/jquery-ui/jquery-ui.js');
+                // Requirements::javascript('silverstripe/admin: thirdparty/jquery-ondemand/jquery.ondemand.js');
+                Requirements::javascript('silverstripe/admin: thirdparty/jquery-entwine/dist/jquery.entwine-dist.js');
+                Requirements::javascript(MULTIRECORDEDITOR_DIR.'/javascript/MultiRecordField.js');
             }
 
             //
@@ -1593,7 +1626,7 @@ class MultiRecordField extends FormField {
                             $inlineAddButton->setAttribute($name, $value);
                         }
                     }
-                    if (count($modelClasses) == 1) 
+                    if (count($modelClasses) == 1)
                     {
                         $name = singleton($modelFirstClass)->i18n_singular_name();
                         $inlineAddButton->setTitle('Add '.$name);
@@ -1603,7 +1636,7 @@ class MultiRecordField extends FormField {
                 $classField = $actions->dataFieldByName('ClassName');
                 if ($classField)
                 {
-                    if (count($modelClasses) > 1) 
+                    if (count($modelClasses) > 1)
                     {
                         if ($inlineAddButton)
                         {
@@ -1633,7 +1666,7 @@ class MultiRecordField extends FormField {
 
             // Get existing records to add fields for
             $recordArray = array();
-            if ($this->list && !$this->list instanceof UnsavedRelationList) 
+            if ($this->list && !$this->list instanceof UnsavedRelationList)
             {
                 foreach ($this->list->toArray() as $record)
                 {
@@ -1648,9 +1681,9 @@ class MultiRecordField extends FormField {
             $value = $this->Value();
             if ($value && is_array($value))
             {
-                foreach ($value as $class => $recordDatas) 
+                foreach ($value as $class => $recordDatas)
                 {
-                    foreach ($recordDatas as $new_id => $fieldData) 
+                    foreach ($recordDatas as $new_id => $fieldData)
                     {
                         if (substr($new_id, 0, 4) === 'new_')
                         {
@@ -1660,7 +1693,7 @@ class MultiRecordField extends FormField {
                         }
                         else if ($new_id == (string)(int)$new_id)
                         {
-                            // NOTE(Jake): "o-multirecordediting-1-id" == 0 // evaluates true in PHP 5.5.12, 
+                            // NOTE(Jake): "o-multirecordediting-1-id" == 0 // evaluates true in PHP 5.5.12,
                             //             So we need to make it a string again to avoid that dumb case.
                             $new_id = (int)$new_id;
                             if (!isset($recordArray[$new_id]))
@@ -1676,7 +1709,7 @@ class MultiRecordField extends FormField {
                         }
 
                         // Update new/existing record with data
-                        foreach ($fieldData as $fieldName => $fieldInfo) 
+                        foreach ($fieldData as $fieldName => $fieldInfo)
                         {
                             if (is_array($fieldInfo)) {
                                 $record->$fieldName = $fieldInfo;
@@ -1730,7 +1763,7 @@ class MultiRecordField extends FormField {
 class MultiRecordField_Readonly extends MultiRecordField {
     protected $readonly = true;
 
-    public function handleRequest(SS_HTTPRequest $request, DataModel $model) {
+    public function handleRequest(HTTPRequest $request) {
         return null;
     }
 

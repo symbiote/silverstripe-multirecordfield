@@ -1,0 +1,10 @@
+mappings:
+  MultiRecordUploadField: Symbiote\MultiRecordField\Field\MultiRecordUploadField
+  MultiRecordFieldData: Symbiote\MultiRecordField\Field\MultiRecordFieldData
+  MultiRecordField: Symbiote\MultiRecordField\Field\MultiRecordField
+  MultiRecordField_Readonly: Symbiote\MultiRecordField\Field\MultiRecordField_Readonly
+  MultiRecordTransformation: Symbiote\MultiRecordField\Field\MultiRecordTransformation
+  MultiRecordFileAttachmentField: Symbiote\MultiRecordField\Field\thirdparty\MultiRecordFileAttachmentField
+  MultiRecordEmbeddedObjectField: Symbiote\MultiRecordField\Field\thirdparty\MultiRecordEmbeddedObjectField
+  MultiRecordSubRecordField: Symbiote\MultiRecordField\Field\MultiRecordSubRecordField
+  MultiRecordSubRecordField_Readonly: Symbiote\MultiRecordField\Field\MultiRecordSubRecordField_Readonly

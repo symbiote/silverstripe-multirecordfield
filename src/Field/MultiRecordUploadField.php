@@ -1,5 +1,14 @@
 <?php
 
+namespace Symbiote\MultiRecordField\Field;
+
+
+
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\AssetAdmin\Forms\UploadField;
+
+
+
 class MultiRecordUploadField extends UploadField {
     /**
      * @var array
@@ -23,7 +32,7 @@ class MultiRecordUploadField extends UploadField {
      * @return SS_HTTPResponse
      * @return SS_HTTPResponse
      */
-    public function upload(SS_HTTPRequest $request) {
+    public function upload(HTTPRequest $request) {
         // Find the first set of upload data that looks like it came from an
         // UploadField.
         // NOTE(Jake): There is only the SecurityID and the 'upload' data as this is done
